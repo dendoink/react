@@ -584,14 +584,6 @@ function markUpdateLaneFromFiberToRoot(
   if (alternate !== null) {
     alternate.lanes = mergeLanes(alternate.lanes, lane);
   }
-  if (__DEV__) {
-    if (
-      alternate === null &&
-      (fiber.effectTag & (Placement | Hydrating)) !== NoEffect
-    ) {
-      warnAboutUpdateOnNotYetMountedFiberInDEV(fiber);
-    }
-  }
   // Walk the parent path to the root and update the child expiration time.
   let node = fiber.return;
   let root = null;
@@ -600,14 +592,6 @@ function markUpdateLaneFromFiberToRoot(
   } else {
     while (node !== null) {
       alternate = node.alternate;
-      if (__DEV__) {
-        if (
-          alternate === null &&
-          (node.effectTag & (Placement | Hydrating)) !== NoEffect
-        ) {
-          warnAboutUpdateOnNotYetMountedFiberInDEV(fiber);
-        }
-      }
       node.childLanes = mergeLanes(node.childLanes, lane);
       if (alternate !== null) {
         alternate.childLanes = mergeLanes(alternate.childLanes, lane);

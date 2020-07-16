@@ -182,6 +182,7 @@ export function createBlockingRoot(
   return new ReactDOMBlockingRoot(container, BlockingRoot, options);
 }
 
+// ATTENTION: options: undefined
 export function createLegacyRoot(
   container: Container,
   options?: RootOptions,
