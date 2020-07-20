@@ -37,16 +37,12 @@ import {
 
 import getEventTarget from './getEventTarget';
 import {
-  TOP_FOCUS,
   TOP_LOAD,
   TOP_ABORT,
   TOP_CANCEL,
   TOP_INVALID,
-  TOP_BLUR,
   TOP_SCROLL,
   TOP_CLOSE,
-  TOP_RESET,
-  TOP_SUBMIT,
   TOP_CAN_PLAY,
   TOP_CAN_PLAY_THROUGH,
   TOP_DURATION_CHANGE,
@@ -85,7 +81,6 @@ import getListener from './getListener';
 import {passiveBrowserEventsSupported} from './checkPassiveEvents';
 
 import {
-  enableFormEventDelegation,
   enableLegacyFBSupport,
   enableCreateEventHandleAPI,
   enableScopeAPI,
@@ -215,8 +210,6 @@ function extractEvents(
 }
 
 export const capturePhaseEvents: Set<DOMTopLevelEventType> = new Set([
-  TOP_FOCUS,
-  TOP_BLUR,
   TOP_SCROLL,
   TOP_LOAD,
   TOP_ABORT,
@@ -247,11 +240,6 @@ export const capturePhaseEvents: Set<DOMTopLevelEventType> = new Set([
   TOP_VOLUME_CHANGE,
   TOP_WAITING,
 ]);
-
-if (!enableFormEventDelegation) {
-  capturePhaseEvents.add(TOP_SUBMIT);
-  capturePhaseEvents.add(TOP_RESET);
-}
 
 if (enableCreateEventHandleAPI) {
   capturePhaseEvents.add(TOP_AFTER_BLUR);
@@ -478,16 +466,13 @@ function addTrappedEventListener(
   if (enableLegacyFBSupport && isDeferredListenerForLegacyFBSupport) {
     const originalListener = listener;
     listener = function(...p) {
-      try {
-        return originalListener.apply(this, p);
-      } finally {
-        removeEventListener(
-          targetContainer,
-          rawEventName,
-          unsubscribeListener,
-          isCapturePhaseListener,
-        );
-      }
+      removeEventListener(
+        targetContainer,
+        rawEventName,
+        unsubscribeListener,
+        isCapturePhaseListener,
+      );
+      return originalListener.apply(this, p);
     };
   }
   if (isCapturePhaseListener) {

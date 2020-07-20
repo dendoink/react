@@ -13,6 +13,7 @@ import typeof * as ExportsType from './ReactFeatureFlags.native-fb';
 // The rest of the flags are static for better dead code elimination.
 export const enableDebugTracing = false;
 export const enableSchedulingProfiler = false;
+export const enableSchedulingProfilerComponentStacks = false;
 export const enableProfilerTimer = __PROFILE__;
 export const enableProfilerCommitHooks = false;
 export const enableSchedulerTracing = __PROFILE__;
@@ -44,7 +45,6 @@ export const warnAboutSpreadingKeyToJSX = false;
 export const enableComponentStackLocations = false;
 export const enableLegacyFBSupport = false;
 export const enableFilterEmptyStringAttributesDOM = false;
-export const enableFormEventDelegation = false;
 
 export const enableNewReconciler = false;
 export const deferRenderPhaseUpdateToNextBatch = true;

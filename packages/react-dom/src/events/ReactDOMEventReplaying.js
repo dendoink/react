@@ -12,10 +12,8 @@ import type {Container, SuspenseInstance} from '../client/ReactDOMHostConfig';
 import type {DOMTopLevelEventType} from '../events/TopLevelEventTypes';
 import type {ElementListenerMap} from '../client/ReactDOMComponentTree';
 import type {EventSystemFlags} from './EventSystemFlags';
-import type {
-  FiberRoot,
-  ReactPriorityLevel,
-} from 'react-reconciler/src/ReactInternalTypes';
+import type {FiberRoot} from 'react-reconciler/src/ReactInternalTypes';
+import type {LanePriority} from 'react-reconciler/src/ReactFiberLane';
 
 import {
   enableDeprecatedFlareAPI,
@@ -67,19 +65,16 @@ export function setAttemptHydrationAtCurrentPriority(
   attemptHydrationAtCurrentPriority = fn;
 }
 
-let getCurrentUpdatePriority: () => ReactPriorityLevel;
+let getCurrentUpdatePriority: () => LanePriority;
 
-export function setGetCurrentUpdatePriority(fn: () => ReactPriorityLevel) {
+export function setGetCurrentUpdatePriority(fn: () => LanePriority) {
   getCurrentUpdatePriority = fn;
 }
 
-let attemptHydrationAtPriority: <T>(
-  priority: ReactPriorityLevel,
-  fn: () => T,
-) => T;
+let attemptHydrationAtPriority: <T>(priority: LanePriority, fn: () => T) => T;
 
 export function setAttemptHydrationAtPriority(
-  fn: <T>(priority: ReactPriorityLevel, fn: () => T) => T,
+  fn: <T>(priority: LanePriority, fn: () => T) => T,
 ) {
   attemptHydrationAtPriority = fn;
 }
@@ -131,8 +126,8 @@ import {
   TOP_POINTER_OUT,
   TOP_GOT_POINTER_CAPTURE,
   TOP_LOST_POINTER_CAPTURE,
-  TOP_FOCUS,
-  TOP_BLUR,
+  TOP_FOCUS_IN,
+  TOP_FOCUS_OUT,
 } from './DOMTopLevelEventTypes';
 import {IS_REPLAYED, PLUGIN_EVENT_SYSTEM} from './EventSystemFlags';
 import {
@@ -170,7 +165,7 @@ type QueuedHydrationTarget = {|
   blockedOn: null | Container | SuspenseInstance,
   target: Node,
   priority: number,
-  lanePriority: ReactPriorityLevel,
+  lanePriority: LanePriority,
 |};
 const queuedExplicitHydrationTargets: Array<QueuedHydrationTarget> = [];
 
@@ -216,10 +211,10 @@ const discreteReplayableEvents = [
 ];
 
 const continuousReplayableEvents = [
-  TOP_FOCUS,
-  TOP_BLUR,
   TOP_DRAG_ENTER,
   TOP_DRAG_LEAVE,
+  TOP_FOCUS_IN,
+  TOP_FOCUS_OUT,
   TOP_MOUSE_OVER,
   TOP_MOUSE_OUT,
   TOP_POINTER_OVER,
@@ -362,8 +357,8 @@ export function clearIfContinuousEvent(
   nativeEvent: AnyNativeEvent,
 ): void {
   switch (topLevelType) {
-    case TOP_FOCUS:
-    case TOP_BLUR:
+    case TOP_FOCUS_IN:
+    case TOP_FOCUS_OUT:
       queuedFocus = null;
       break;
     case TOP_DRAG_ENTER:
@@ -443,7 +438,7 @@ export function queueIfContinuousEvent(
   // moved from outside the window (no target) onto the target once it hydrates.
   // Instead of mutating we could clone the event.
   switch (topLevelType) {
-    case TOP_FOCUS: {
+    case TOP_FOCUS_IN: {
       const focusEvent = ((nativeEvent: any): FocusEvent);
       queuedFocus = accumulateOrCreateContinuousQueuedReplayableEvent(
         queuedFocus,

@@ -17,7 +17,8 @@ export const enableDebugTracing = false;
 
 // Adds user timing marks for e.g. state updates, suspense, and work loop stuff,
 // for an experimental scheduling profiler tool.
-export const enableSchedulingProfiler = false;
+export const enableSchedulingProfiler = __PROFILE__ && __EXPERIMENTAL__;
+export const enableSchedulingProfilerComponentStacks = false;
 
 // Helps identify side effects in render-phase lifecycle hooks and setState
 // reducers by double invoking them in Strict Mode.
@@ -127,6 +128,3 @@ export const deferRenderPhaseUpdateToNextBatch = true;
 
 // Replacement for runWithPriority in React internals.
 export const decoupleUpdatePriorityFromScheduler = false;
-
-// Enables delegation for submit and reset events.
-export const enableFormEventDelegation = false;
