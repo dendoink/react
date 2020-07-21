@@ -412,31 +412,42 @@ export function requestUpdateLane(
     // the current behavior.
     return pickArbitraryLane(workInProgressRootRenderLanes);
   }
-
+  
+  // ATTENTION:
   // The algorithm for assigning an update to a lane should be stable for all
-  // updates at the same priority within the same event. To do this, the inputs
-  // to the algorithm must be the same. For example, we use the `renderLanes`
-  // to avoid choosing a lane that is already in the middle of rendering.
-  //
+  // updates at the same priority within the same event. 
+  // 对于同一 event 中具有相同优先级的所有更新，将更新分配给 lane 的算法应保持稳定。
+  
+  // To do this, the inputs to the algorithm must be the same. 
+  // 为此，算法的输入必须相同。 
+  // For example, we use the `renderLanes` to avoid choosing a lane that is already in the middle of rendering.
+  // 例如，我们使用`renderLanes` 来避免选择已经在渲染中的 lane。
+
   // However, the "included" lanes could be mutated in between updates in the
-  // same event, like if you perform an update inside `flushSync`. Or any other
-  // code path that might call `prepareFreshStack`.
+  // same event, like if you perform an update inside `flushSync`. 
+  // 但是，"included" lane 可以在同一事件的两次更新之间被更改，就像在 "flushSync" 内部执行更新一样。
+  // Or any other code path that might call `prepareFreshStack`.
+  // 或任何其他可能调用 `prepareFreshStack` 的代码路径。
   //
   // The trick we use is to cache the first of each of these inputs within an
-  // event. Then reset the cached values once we can be sure the event is over.
-  // Our heuristic for that is whenever we enter a concurrent work loop.
-  //
-  // We'll do the same for `currentEventPendingLanes` below.
+  // event. 
+  // 我们使用的技巧是将每次输入的第一个缓存在事件中。
+  // Then reset the cached values once we can be sure the event is over.
+  // 一旦我们能够确定event 已经结束了，就可以重置缓存的值。
+  // Our heuristic for that is whenever we enter a concurrent work loop. We'll do the same for `currentEventPendingLanes` below.
+  // 我们触发的方式是，每当进入并发 work loop 时，将在下面的 "currentEventPendingLanes" 中执行相同的操作。
   if (currentEventWipLanes === NoLanes) {
     currentEventWipLanes = workInProgressRootIncludedLanes;
   }
 
   if (suspenseConfig !== null) {
+    // ATTENTION: 使用 timeout 的大小作为试探法，可以将较短的 transition 优先于较长的 transition。
     // Use the size of the timeout as a heuristic to prioritize shorter
     // transitions over longer ones.
     // TODO: This will coerce numbers larger than 31 bits to 0.
     const timeoutMs = suspenseConfig.timeoutMs;
     const transitionLanePriority =
+    // 将大于 31 位的数字转换为 0
       timeoutMs === undefined || (timeoutMs | 0) < 10000
         ? TransitionShortLanePriority
         : TransitionLongLanePriority;
@@ -458,13 +469,19 @@ export function requestUpdateLane(
   // TODO: Remove this dependency on the Scheduler priority.
   // To do that, we're replacing it with an update lane priority.
   const schedulerPriority = getCurrentPriorityLevel();
-
+  
   // The old behavior was using the priority level of the Scheduler.
   // This couples React to the Scheduler internals, so we're replacing it
   // with the currentUpdateLanePriority above. As an example of how this
   // could be problematic, if we're not inside `Scheduler.runWithPriority`,
   // then we'll get the priority of the current running Scheduler task,
   // which is probably not what we want.
+
+  // ATTENTION:
+  // 旧的方式是使用 Scheduler 的优先级，这将 React 与 Scheduler 的内部因素耦合在一起，
+  // 因此我们将其替换为上面的 currentUpdateLanePriority。 
+  // 举一个例子，如果我们不在 `Scheduler.runWithPriority` 内部，
+  // 那么我们将获得当前正在运行的 Scheduler 任务的优先级，这可能不是我们想要的。
   let lane;
   if (
     // TODO: Temporary. We're removing the concept of discrete updates.

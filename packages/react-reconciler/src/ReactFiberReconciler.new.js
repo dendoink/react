@@ -257,7 +257,9 @@ export function updateContainer(
   if (__DEV__) {
     onScheduleRoot(container, element);
   }
+  // ATTENTION: 取出 fiberNode
   const current = container.current;
+  // 
   const eventTime = requestEventTime();
   if (__DEV__) {
     // $FlowExpectedError - jest isn't a global, and isn't recognized outside of tests
@@ -266,6 +268,8 @@ export function updateContainer(
       warnIfNotScopedWithMatchingAct(current);
     }
   }
+  // ATTENTION: Concurrent 模式下 Suspense 的配置。目前并未配置，所以返回的是 null
+  // https://zh-hans.reactjs.org/docs/concurrent-mode-reference.html#suspense
   const suspenseConfig = requestCurrentSuspenseConfig();
   const lane = requestUpdateLane(current, suspenseConfig);
 

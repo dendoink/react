@@ -10,6 +10,7 @@
 import ReactSharedInternals from 'shared/ReactSharedInternals';
 
 const {ReactCurrentBatchConfig} = ReactSharedInternals;
+console.log('ReactCurrentBatchConfig: ', ReactCurrentBatchConfig);
 
 export type SuspenseConfig = {|
   timeoutMs: number,
