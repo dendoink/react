@@ -693,6 +693,7 @@ function markUpdateLaneFromFiberToRoot(
   //   }
   // }
   // Walk the parent path to the root and update the child expiration time.
+  // 将父路径遍历到根并更新 child 的 expiration time.
   let node = sourceFiber;
   let parent = sourceFiber.return;
   // HERE:
