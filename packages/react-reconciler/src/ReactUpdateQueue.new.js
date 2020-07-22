@@ -204,7 +204,7 @@ export function createUpdate(
   };
   return update;
 }
-
+// ATTENTION: pending = fiber.updateQueue.shared.pending
 export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
   const updateQueue = fiber.updateQueue;
   if (updateQueue === null) {

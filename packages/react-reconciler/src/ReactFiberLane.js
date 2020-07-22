@@ -7,7 +7,7 @@
  * @flow
  */
 
-import type {FiberRoot, ReactPriorityLevel} from './ReactInternalTypes';
+import type { FiberRoot, ReactPriorityLevel } from './ReactInternalTypes';
 
 export opaque type LanePriority =
   | 0
@@ -507,17 +507,32 @@ export function findUpdateLane(
       return lane;
     }
     case DefaultLanePriority: {
+      // ATTENTION: 
+      // DefaultLanes: 0b0000000000000000000111000000000
+      // wipLanes: 0
+      // 取出 DefaultLanes 与 wipLanes 没有占据的位的并集。并且取出一个任意位，实际上取出的是最高位
+      // ATTENTION: 
+      // 个人理解，这里是取的 DefaultLanes 和除去所有当前正在工作中的所有 lanes 的交集，也就是空闲的 lane 与 DefaultLanes 的交集。
+      // 针对这个交集里面，取出任意位（实际上取出的是最高位，同时也代表最高优先级。）
       let lane = pickArbitraryLane(DefaultLanes & ~wipLanes);
       if (lane === NoLane) {
         // If all the default lanes are already being worked on, look for a
         // lane in the transition range.
+        // ATTENTION: 
+        // 在 TransitionShortLanes 和 TransitionLongLanes 的并集里面取出一个不在 wipLanes 中的位。
+        // （当然这里取的也是最高位）
         lane = pickArbitraryLane(
           (TransitionShortLanes | TransitionLongLanes) & ~wipLanes,
         );
+        // ATTENTION: 当最高位取出后，仍然与 NoLane 相等。
+        // 就证明 TransitionShortLanes 和 TransitionLongLanes 都已经在执行中或者执行结束了。因为在所有位上的值都为 0
+        // export const NoLane: Lane = /*                          */ 0b0000000000000000000000000000000;
         if (lane === NoLane) {
           // All the transition lanes are taken, too. This should be very
           // rare, but as a last resort, pick a default lane. This will have
           // the effect of interrupting the current work-in-progress render.
+          // ATTENTION: 所有的 transition lanes 都被占用。 
+          // 这应该很少见，但是作为最后的选择，选择一个 default lane。 这将具有中断当前 work-in-progress 的 render。
           lane = pickArbitraryLane(DefaultLanes);
         }
       }
@@ -602,7 +617,12 @@ export function findRetryLane(wipLanes: Lanes): Lane {
   }
   return lane;
 }
-
+// ATTENTION:
+// 原：111000000000
+// 反：000111111111 先取反
+// 加：000000000001 再加 1 
+// 负：001000000000 得到 -lanes
+// 结：001000000000 lanes & -lanes; 对应十进制为 512
 function getHighestPriorityLane(lanes: Lanes) {
   return lanes & -lanes;
 }
@@ -616,12 +636,15 @@ function getLowestPriorityLane(lanes: Lanes): Lane {
 function getEqualOrHigherPriorityLanes(lanes: Lanes | Lane): Lanes {
   return (getLowestPriorityLane(lanes) << 1) - 1;
 }
-
+// pickArbitraryLane 选择任意的位[也就是 lane]
 export function pickArbitraryLane(lanes: Lanes): Lane {
   // This wrapper function gets inlined. Only exists so to communicate that it
   // doesn't matter which bit is selected; you can pick any bit without
   // affecting the algorithms where its used. Here I'm using
   // getHighestPriorityLane because it requires the fewest operations.
+  // ATTENTION: 
+  // 你可以选择任何位，而不会影响使用该位的算法。 
+  // 这里直接取的最高位因为最简单
   return getHighestPriorityLane(lanes);
 }
 

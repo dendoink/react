@@ -59,12 +59,17 @@ const fakeCallbackNode = {};
 // Except for NoPriority, these correspond to Scheduler priorities. We use
 // ascending numbers so we can compare them like numbers. They start at 90 to
 // avoid clashing with Scheduler's priorities.
+// ATTENTION: 
+// 除 NoPriority 外，这些都与Scheduler优先级相对应。 
+// 我们使用升序数字，因此我们可以像数字一样比较它们。 
+// 它们从90开始，以避免与Scheduler的优先级冲突。
 export const ImmediatePriority: ReactPriorityLevel = 99;
 export const UserBlockingPriority: ReactPriorityLevel = 98;
 export const NormalPriority: ReactPriorityLevel = 97;
 export const LowPriority: ReactPriorityLevel = 96;
 export const IdlePriority: ReactPriorityLevel = 95;
 // NoPriority is the absence of priority. Also React-only.
+// ATTENTION: NoPriority 是缺省优先级。 也仅适用于React。
 export const NoPriority: ReactPriorityLevel = 90;
 
 export const shouldYield = Scheduler_shouldYield;
@@ -86,14 +91,19 @@ const initialTimeMs: number = Scheduler_now();
 // TODO: Consider lifting this into Scheduler.
 export const now =
   initialTimeMs < 10000 ? Scheduler_now : () => Scheduler_now() - initialTimeMs;
-
+// ATTENTION: currentPriorityLevel 默认为 NormalPriority: 3
+// function unstable_getCurrentPriorityLevel() {
+//   return currentPriorityLevel;
+// }
 export function getCurrentPriorityLevel(): ReactPriorityLevel {
   switch (Scheduler_getCurrentPriorityLevel()) {
     case Scheduler_ImmediatePriority:
       return ImmediatePriority;
     case Scheduler_UserBlockingPriority:
       return UserBlockingPriority;
+    // ATTENTION: SchedulerPriorities.js 中的 export const NormalPriority = 3; Scheduler_NormalPriority只是别名
     case Scheduler_NormalPriority:
+      // 这里返回的优先级为了与 Scheduler 的优先级进行区分，是从 90 开始的数字， NormalPriority = 97
       return NormalPriority;
     case Scheduler_LowPriority:
       return LowPriority;
