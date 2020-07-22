@@ -693,10 +693,10 @@ function markUpdateLaneFromFiberToRoot(
   //   }
   // }
   // Walk the parent path to the root and update the child expiration time.
-  // 将父路径遍历到根并更新 child 的 expiration time.
+  // ATTENTION: 将父路径遍历到根并更新 child 的 expiration time.
   let node = sourceFiber;
   let parent = sourceFiber.return;
-  // HERE:
+  // ATTENTION: 这里一直向上遍历到根节点，更新从当前 fiber 节点开始的所有return 节点的 childLanes 的值，把当前Fiber 节点的lane合并进去。
   while (parent !== null) {
     parent.childLanes = mergeLanes(parent.childLanes, lane);
     alternate = parent.alternate;
@@ -712,6 +712,7 @@ function markUpdateLaneFromFiberToRoot(
     node = parent;
     parent = parent.return;
   }
+  // HERE:
   if (node.tag === HostRoot) {
     const root: FiberRoot = node.stateNode;
     return root;
