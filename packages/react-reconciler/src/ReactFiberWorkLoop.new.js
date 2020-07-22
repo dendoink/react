@@ -257,6 +257,7 @@ type ExecutionContext = number;
 export const NoContext = /*             */ 0b0000000;
 const BatchedContext = /*               */ 0b0000001;
 const EventContext = /*                 */ 0b0000010;
+// ATTENTION: DiscreteEvent 离散事件. 例如blur、focus、 click、 submit、 touchStart. 这些事件都是离散触发的。
 const DiscreteEventContext = /*         */ 0b0000100;
 const LegacyUnbatchedContext = /*       */ 0b0001000;
 const RenderContext = /*                */ 0b0010000;
