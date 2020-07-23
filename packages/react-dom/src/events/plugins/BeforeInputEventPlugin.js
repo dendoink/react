@@ -27,9 +27,12 @@ import {
   initialize as FallbackCompositionStateInitialize,
   reset as FallbackCompositionStateReset,
 } from '../FallbackCompositionState';
-import SyntheticCompositionEvent from '../SyntheticCompositionEvent';
-import SyntheticInputEvent from '../SyntheticInputEvent';
-import {accumulateTwoPhaseListeners} from '../DOMModernPluginEventSystem';
+import {
+  CompositionEventInterface,
+  InputEventInterface,
+  SyntheticEvent,
+} from '../SyntheticEvent';
+import {accumulateTwoPhaseListeners} from '../DOMPluginEventSystem';
 
 const END_KEYCODES = [9, 13, 27, 32]; // Tab, Return, Esc, Space
 const START_KEYCODE = 229;
@@ -235,11 +238,12 @@ function extractCompositionEvent(
     }
   }
 
-  const event = new SyntheticCompositionEvent(
+  const event = new SyntheticEvent(
     eventType,
     null,
     nativeEvent,
     nativeEventTarget,
+    CompositionEventInterface,
   );
   accumulateTwoPhaseListeners(targetInst, dispatchQueue, event);
 
@@ -405,11 +409,12 @@ function extractBeforeInputEvent(
     return null;
   }
 
-  const event = new SyntheticInputEvent(
+  const event = new SyntheticEvent(
     'onBeforeInput',
     null,
     nativeEvent,
     nativeEventTarget,
+    InputEventInterface,
   );
   accumulateTwoPhaseListeners(targetInst, dispatchQueue, event);
   event.data = chars;
