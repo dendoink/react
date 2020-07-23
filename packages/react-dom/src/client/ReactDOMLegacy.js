@@ -88,6 +88,7 @@ function legacyCreateRootFromDOMContainer(
   );
 }
 
+// ATTENTION:
 // parentComponent: null,
 // children: element,
 // container,

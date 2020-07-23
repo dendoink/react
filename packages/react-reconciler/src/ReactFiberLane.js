@@ -647,7 +647,11 @@ export function pickArbitraryLane(lanes: Lanes): Lane {
   // 这里直接取的最高位因为最简单
   return getHighestPriorityLane(lanes);
 }
-// ATTENTION: 选择lane中任意的位的下标
+// ATTENTION: 
+/** 
+ * @description 选择lane中任意的位的下标
+ * @returns 最高的不为零的位对应的下标
+ */
 function pickArbitraryLaneIndex(lanes: Lanes) {
   // clz32(lanes) 返回这个数的 32 位表示中，从最高位数起，有多少个连续的 0
   // ATTENTION: 实际上这里返回的是最高的不为零的位对应的下标
@@ -745,6 +749,13 @@ export function markRootUpdated(
   eventTimes[index] = eventTime;
 }
 
+// QUESTION: 暂时还没搞懂这函数实际做了什么
+/**
+ * @description 将 fiberRoot 标记为挂起状态
+ * @param {*} root fiberRoot
+ * @param {*} suspendedLanes 挂起的 lanes
+ */
+// HERE:
 export function markRootSuspended(root: FiberRoot, suspendedLanes: Lanes) {
   root.suspendedLanes |= suspendedLanes;
   root.pingedLanes &= ~suspendedLanes;

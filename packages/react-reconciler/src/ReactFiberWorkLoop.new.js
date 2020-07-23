@@ -608,7 +608,7 @@ export function scheduleUpdateOnFiber(
       // 这具有中断当前渲染并切换到更新的效果。
       // TODO: Make sure this doesn't override pings that happen while we've
       // already started rendering.
-      // HERE:
+      
       markRootSuspended(root, workInProgressRootRenderLanes);
     }
   }
@@ -616,7 +616,7 @@ export function scheduleUpdateOnFiber(
   // TODO: requestUpdateLanePriority also reads the priority. Pass the
   // priority as an argument to that function and this one.
   const priorityLevel = getCurrentPriorityLevel();
-
+  // HERE:
   if (lane === SyncLane) {
     if (
       // Check if we're inside unbatchedUpdates
