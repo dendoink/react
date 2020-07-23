@@ -556,7 +556,6 @@ function requestRetryLane(fiber: Fiber) {
   }
   return findRetryLane(currentEventWipLanes);
 }
-// HERE:
 export function scheduleUpdateOnFiber(
   fiber: Fiber,
   lane: Lane,
@@ -566,13 +565,13 @@ export function scheduleUpdateOnFiber(
   checkForNestedUpdates();
   // ATTENTION: 调试方法
   warnAboutRenderPhaseUpdatesInDEV(fiber);
-  // HERE:
+  // ATTENTION: 返回的是 FiberRootNode
   const root = markUpdateLaneFromFiberToRoot(fiber, lane);
   if (root === null) {
     warnAboutUpdateOnUnmountedFiberInDEV(fiber);
     return null;
   }
-
+  // HERE:
   // Mark that the root has a pending update.
   markRootUpdated(root, lane, eventTime);
 
@@ -666,7 +665,6 @@ export function scheduleUpdateOnFiber(
 // work without treating it as a typical update that originates from an event;
 // e.g. retrying a Suspense boundary isn't an update, but it does schedule work
 // on a fiber.
-// HERE:
 // ATTENTION:
 // 这被拆分为一个单独的函数，因此我们可以将 fiber 标记为 pending 的工作，
 // 而不必将其视为源于 event 的常规 update。
@@ -712,8 +710,8 @@ function markUpdateLaneFromFiberToRoot(
     node = parent;
     parent = parent.return;
   }
-  // HERE:
   if (node.tag === HostRoot) {
+    // ATTENTION: 返回的是，Fiber 的根节点，FiberRootNode
     const root: FiberRoot = node.stateNode;
     return root;
   } else {

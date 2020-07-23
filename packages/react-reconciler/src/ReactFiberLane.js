@@ -694,6 +694,7 @@ export function createLaneMap<T>(initial: T): LaneMap<T> {
   return new Array(TotalLanes).fill(initial);
 }
 
+// HERE:
 export function markRootUpdated(
   root: FiberRoot,
   updateLane: Lane,
@@ -710,8 +711,20 @@ export function markRootUpdated(
   // when considering updates across different priority levels, but isn't
   // sufficient for updates within the same priority, since we want to treat
   // those updates as parallel.
+  // ATTENTION:
+  // QUESTION: 这里对于旧的 ExpirationTimes 的规律任存在疑问。
+  // 从理论上讲，对任何 lane 的任何 update 都可以解除对任何其他 lane 的阻塞。 但是尝试每种可能的组合都是不切实际的。 
+  // 我们需要一个探索性方法决定在哪一批次尝试渲染 lane。现在，我们使用与旧的 ExpirationTimes 模型相同的方式：
+  // 在相同或较低优先级的任意 lane 进行重试，但不要在不含较低优先级 updates 的情况下尝试以较高优先级进行更新。 
+  // 当考虑跨不同优先级级别的 update 时，此方法效果很好，但用于同一优先级内的 update 稍显不足，因为我们希望将这些 update 视为并行。
 
   // Unsuspend any update at equal or lower priority.
+  // ATTENTION: 解除较相等或者较低优先级 update 的中断
+  // QUESTION: 个人理解备注：二进制码 0b1000 越接近左边，也就是越高的位，实际代表的 lane 优先级越高
+  // 而 lane 作为一个update 的优先级，只能占据一个位(这也证明它的真值为 2 的整数次幂，同时其他位均为 0)，
+  // 所以在 updateLane - 1 之后，低于它的位都从 0 变为 1，也就是其他位所代表的，那些优先级低于当前 lane 的 lanes 都被 unblock
+  // 就像上面注释里面说的：any update to any lane can unblock any other lane。
+
   const higherPriorityLanes = updateLane - 1; // Turns 0b1000 into 0b0111
 
   root.suspendedLanes &= higherPriorityLanes;
