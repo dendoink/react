@@ -647,8 +647,10 @@ export function pickArbitraryLane(lanes: Lanes): Lane {
   // 这里直接取的最高位因为最简单
   return getHighestPriorityLane(lanes);
 }
-
+// ATTENTION: 选择lane中任意的位的下标
 function pickArbitraryLaneIndex(lanes: Lanes) {
+  // clz32(lanes) 返回这个数的 32 位表示中，从最高位数起，有多少个连续的 0
+  // ATTENTION: 实际上这里返回的是最高的不为零的位对应的下标
   return 31 - clz32(lanes);
 }
 
@@ -694,12 +696,12 @@ export function createLaneMap<T>(initial: T): LaneMap<T> {
   return new Array(TotalLanes).fill(initial);
 }
 
-// HERE:
 export function markRootUpdated(
   root: FiberRoot,
   updateLane: Lane,
   eventTime: number,
 ) {
+  // ATTENTION: updateLane 并入 root.pendingLanes
   root.pendingLanes |= updateLane;
 
   // TODO: Theoretically, any update to any lane can unblock any other lane. But
@@ -712,11 +714,11 @@ export function markRootUpdated(
   // sufficient for updates within the same priority, since we want to treat
   // those updates as parallel.
   // ATTENTION:
-  // QUESTION: 这里对于旧的 ExpirationTimes 的规律任存在疑问。
   // 从理论上讲，对任何 lane 的任何 update 都可以解除对任何其他 lane 的阻塞。 但是尝试每种可能的组合都是不切实际的。 
   // 我们需要一个探索性方法决定在哪一批次尝试渲染 lane。现在，我们使用与旧的 ExpirationTimes 模型相同的方式：
   // 在相同或较低优先级的任意 lane 进行重试，但不要在不含较低优先级 updates 的情况下尝试以较高优先级进行更新。 
   // 当考虑跨不同优先级级别的 update 时，此方法效果很好，但用于同一优先级内的 update 稍显不足，因为我们希望将这些 update 视为并行。
+  // QUESTION: 这里对于旧的 ExpirationTimes 的规律任存在疑问。
 
   // Unsuspend any update at equal or lower priority.
   // ATTENTION: 解除较相等或者较低优先级 update 的中断
@@ -727,13 +729,19 @@ export function markRootUpdated(
 
   const higherPriorityLanes = updateLane - 1; // Turns 0b1000 into 0b0111
 
+  // ATTENTION: 
+  // 在 root.suspendedLanes 和 root.pingedLanes 上如果存在与 higherPriorityLanes 的交集，就提升相交部分的优先级。
   root.suspendedLanes &= higherPriorityLanes;
   root.pingedLanes &= higherPriorityLanes;
 
+
   const eventTimes = root.eventTimes;
+  // ATTENTION: 实际上这里返回的是 updateLane 最高的不为零的位,对应的下标
   const index = laneToIndex(updateLane);
   // We can always overwrite an existing timestamp because we prefer the most
   // recent event, and we assume time is monotonically increasing.
+  // ATTENTION: 因为我们专注于最近的 event 所以总是覆盖现有的时间戳，，并且假设时间在单调的增加
+  // ATTENTION: 根据上面 index 也看出，eventTimes 应该有 32 个下标，因为最大值为 31，最小值为 0。对应 32 个位置上的 update 的 eventTime
   eventTimes[index] = eventTime;
 }
 
@@ -889,6 +897,10 @@ export function getBumpedLaneForHydration(
   return lane;
 }
 
+/**
+ * ATTENTION:
+ * @description 返回这个数的 32 位表示中，从最高位数起，有多少个连续的 0
+ */
 const clz32 = Math.clz32 ? Math.clz32 : clz32Fallback;
 
 // Count leading zeros. Only used on lanes, so assume input is an integer.

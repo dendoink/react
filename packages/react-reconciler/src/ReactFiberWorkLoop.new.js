@@ -571,16 +571,23 @@ export function scheduleUpdateOnFiber(
     warnAboutUpdateOnUnmountedFiberInDEV(fiber);
     return null;
   }
-  // HERE:
-  // Mark that the root has a pending update.
-  markRootUpdated(root, lane, eventTime);
 
+  // Mark that the root has a pending update.
+  // ATTENTION: 给 fiberRoot 加上一个有 pending update 的标志,具体来说
+  // ATTENTION: 1. root.suspendedLanes 和 root.pingedLanes 提升了它与低于当前优先级的所有位的交集的优先级。
+  // ATTENTION: 2. lane 并入到 root.pendingLanes
+  // ATTENTION: 3. root.eventTimes[index] 更新为 eventTime 其中，index 是 lane 不为 0 的最高位的 index
+  markRootUpdated(root, lane, eventTime);
   if (root === workInProgressRoot) {
     // Received an update to a tree that's in the middle of rendering. Mark
     // that there was an interleaved update work on this root. Unless the
     // `deferRenderPhaseUpdateToNextBatch` flag is off and this is a render
     // phase update. In that case, we don't treat render phase updates as if
     // they were interleaved, for backwards compat reasons.
+    // ATTENTION: 
+    // 在收到对正在渲染中的 tree 的更新的时，标记此根上有交替的更新工作。 
+    // 除非 `deferRenderPhaseUpdateToNextBatch` 标志处于关闭状态，并且是 render 阶段更新。 
+    // 这种情况下，为了向后兼容的原因，我们不会将 render 阶段的 update 视为交错处理。
     if (
       deferRenderPhaseUpdateToNextBatch ||
       (executionContext & RenderContext) === NoContext
@@ -590,13 +597,18 @@ export function scheduleUpdateOnFiber(
         lane,
       );
     }
+    
     if (workInProgressRootExitStatus === RootSuspendedWithDelay) {
       // The root already suspended with a delay, which means this render
       // definitely won't finish. Since we have a new update, let's mark it as
       // suspended now, right before marking the incoming update. This has the
       // effect of interrupting the current render and switching to the update.
+      // ATTENTION: fiberRoot 通过延迟挂起[或者译为中断]，这意味着此渲染肯定不会完成。 
+      // 由于我们有一个新的更新，因此在标记传入的更新之前，现在将 fiberRoot 标记为已暂停。 
+      // 这具有中断当前渲染并切换到更新的效果。
       // TODO: Make sure this doesn't override pings that happen while we've
       // already started rendering.
+      // HERE:
       markRootSuspended(root, workInProgressRootRenderLanes);
     }
   }
@@ -1053,6 +1065,7 @@ function finishConcurrentRender(root, finishedWork, exitStatus, lanes) {
 function markRootSuspended(root, suspendedLanes) {
   // When suspending, we should always exclude lanes that were pinged or (more
   // rarely, since we try to avoid it) updated during the render phase.
+  // ATTENTION: 挂起时，我们应始终排除在 render 阶段被 ping 或（由于很少尝试，因为我们尽量避免）更新的 lanes。
   // TODO: Lol maybe there's a better way to factor this besides this
   // obnoxiously named function :)
   suspendedLanes = removeLanes(suspendedLanes, workInProgressRootPingedLanes);
